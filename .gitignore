@@ -15,6 +15,7 @@ gradle-app.setting
 *.iml
 
 # Java / OS noise
+bin/
 *.class
 *.log
 .DS_Store

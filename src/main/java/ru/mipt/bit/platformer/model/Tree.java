@@ -1,22 +1,20 @@
 package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.Rectangle;
 
-public class Tree {
+public class Tree implements Obstacle {
     private final GridPoint2 coordinates;
-    private final Rectangle rectangle;
 
     public Tree(GridPoint2 coordinates) {
         this.coordinates = new GridPoint2(coordinates);
-        this.rectangle = new Rectangle();
     }
 
     public GridPoint2 getCoordinates() {
-        return coordinates;
+        return new GridPoint2(coordinates);
     }
 
-    public Rectangle getRectangle() {
-        return rectangle;
+    @Override
+    public boolean occupies(GridPoint2 coordinates) {
+        return this.coordinates.equals(coordinates);
     }
 }
