@@ -17,13 +17,13 @@ public class Tank {
         this.rotation = 0f;
     }
 
-    public boolean tryMove(Direction direction, Tree obstacle) {
+    public boolean tryMove(Direction direction, Obstacle obstacle) {
         if (!isEqual(movementProgress, 1f)) {
             return false;
         }
 
         GridPoint2 next = new GridPoint2(coordinates.x + direction.delta().x, coordinates.y + direction.delta().y);
-        if (obstacle != null && obstacle.getCoordinates().equals(next)) {
+        if (obstacle != null && obstacle.occupies(next)) {
             return false;
         }
 
@@ -46,11 +46,11 @@ public class Tank {
     }
 
     public GridPoint2 getCoordinates() {
-        return coordinates;
+        return new GridPoint2(coordinates);
     }
 
     public GridPoint2 getDestinationCoordinates() {
-        return destinationCoordinates;
+        return new GridPoint2(destinationCoordinates);
     }
 
     public float getMovementProgress() {
