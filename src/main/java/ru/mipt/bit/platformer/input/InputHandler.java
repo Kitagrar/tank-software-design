@@ -1,24 +1,24 @@
 package ru.mipt.bit.platformer.input;
 
 import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.model.Movable;
 import ru.mipt.bit.platformer.model.Obstacle;
-import ru.mipt.bit.platformer.model.Tank;
 
 public class InputHandler {
     private final InputSource inputSource;
-    private final Tank tank;
+    private final Movable movable;
     private final Obstacle obstacle;
 
-    public InputHandler(InputSource inputSource, Tank tank, Obstacle obstacle) {
+    public InputHandler(InputSource inputSource, Movable movable, Obstacle obstacle) {
         this.inputSource = inputSource;
-        this.tank = tank;
+        this.movable = movable;
         this.obstacle = obstacle;
     }
 
     public void update() {
         for (Direction direction : Direction.values()) {
             if (inputSource.isPressed(direction)) {
-                tank.tryMove(direction, obstacle);
+                movable.tryMove(direction, obstacle);
                 return;
             }
         }

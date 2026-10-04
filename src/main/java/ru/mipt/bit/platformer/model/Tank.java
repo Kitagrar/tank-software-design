@@ -3,7 +3,7 @@ package ru.mipt.bit.platformer.model;
 import com.badlogic.gdx.math.GridPoint2;
 import static com.badlogic.gdx.math.MathUtils.isEqual;
 
-public class Tank {
+public class Tank implements Movable {
     private static final float MOVEMENT_SPEED = 0.4f;
 
     private GridPoint2 coordinates;
