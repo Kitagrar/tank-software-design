@@ -15,6 +15,9 @@ import ru.mipt.bit.platformer.graphics.TankRenderer;
 import ru.mipt.bit.platformer.graphics.TreeRenderer;
 import ru.mipt.bit.platformer.input.InputHandler;
 import ru.mipt.bit.platformer.input.LibGdxInputSource;
+import ru.mipt.bit.platformer.model.CompositeObstacle;
+import ru.mipt.bit.platformer.model.MapBorder;
+import ru.mipt.bit.platformer.model.Obstacle;
 import ru.mipt.bit.platformer.model.Tank;
 import ru.mipt.bit.platformer.model.Tree;
 
@@ -29,6 +32,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private MapRenderer levelRenderer;
     private Tank tank;
     private Tree tree;
+    private Obstacle mapObstacle;
     private InputHandler inputHandler;
     private TankRenderer tankRenderer;
     private TreeRenderer treeRenderer;
@@ -43,7 +47,11 @@ public class GameDesktopLauncher implements ApplicationListener {
         TiledMapTileLayer groundLayer = getSingleLayer(level);
         tank = new Tank(new GridPoint2(1, 1));
         tree = new Tree(new GridPoint2(1, 3));
-        inputHandler = new InputHandler(new LibGdxInputSource(), tank, tree);
+        mapObstacle = new CompositeObstacle(
+                new MapBorder(groundLayer.getWidth(), groundLayer.getHeight()),
+                tree
+        );
+        inputHandler = new InputHandler(new LibGdxInputSource(), tank, mapObstacle);
         tankRenderer = new TankRenderer(batch, groundLayer);
         treeRenderer = new TreeRenderer(batch, groundLayer);
     }
