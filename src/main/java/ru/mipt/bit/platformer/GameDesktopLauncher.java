@@ -10,15 +10,14 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.math.GridPoint2;
 import ru.mipt.bit.platformer.graphics.TankRenderer;
 import ru.mipt.bit.platformer.graphics.TreeRenderer;
 import ru.mipt.bit.platformer.input.InputHandler;
 import ru.mipt.bit.platformer.input.LibGdxInputSource;
-import ru.mipt.bit.platformer.model.CompositeObstacle;
-import ru.mipt.bit.platformer.model.MapBorder;
-import ru.mipt.bit.platformer.model.Obstacle;
-import ru.mipt.bit.platformer.model.Tank;
+import ru.mipt.bit.platformer.level.FileLevelCreationStrategy;
+import ru.mipt.bit.platformer.level.LevelCreationStrategy;
+import ru.mipt.bit.platformer.level.LevelValidator;
+import ru.mipt.bit.platformer.model.GameLevel;
 import ru.mipt.bit.platformer.model.Tree;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
@@ -26,16 +25,19 @@ import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 public class GameDesktopLauncher implements ApplicationListener {
 
+    private final LevelCreationStrategy levelStrategy;
     private Batch batch;
 
     private TiledMap level;
     private MapRenderer levelRenderer;
-    private Tank tank;
-    private Tree tree;
-    private Obstacle mapObstacle;
+    private GameLevel gameLevel;
     private InputHandler inputHandler;
     private TankRenderer tankRenderer;
     private TreeRenderer treeRenderer;
+
+    public GameDesktopLauncher(LevelCreationStrategy levelStrategy) {
+        this.levelStrategy = java.util.Objects.requireNonNull(levelStrategy);
+    }
 
     @Override
     public void create() {
@@ -45,13 +47,8 @@ public class GameDesktopLauncher implements ApplicationListener {
         level = new TmxMapLoader().load("level.tmx");
         levelRenderer = createSingleLayerMapRenderer(level, batch);
         TiledMapTileLayer groundLayer = getSingleLayer(level);
-        tank = new Tank(new GridPoint2(1, 1));
-        tree = new Tree(new GridPoint2(1, 3));
-        mapObstacle = new CompositeObstacle(
-                new MapBorder(groundLayer.getWidth(), groundLayer.getHeight()),
-                tree
-        );
-        inputHandler = new InputHandler(new LibGdxInputSource(), tank, mapObstacle);
+        gameLevel = levelStrategy.create(groundLayer.getWidth(), groundLayer.getHeight());
+        inputHandler = new InputHandler(new LibGdxInputSource(), gameLevel.getTank(), gameLevel.getCollisionObstacle());
         tankRenderer = new TankRenderer(batch, groundLayer);
         treeRenderer = new TreeRenderer(batch, groundLayer);
     }
@@ -66,7 +63,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         float deltaTime = Gdx.graphics.getDeltaTime();
 
         inputHandler.update();
-        tank.updateMovement(deltaTime);
+        gameLevel.getTank().updateMovement(deltaTime);
 
         // render each tile of the level
         levelRenderer.render();
@@ -74,8 +71,10 @@ public class GameDesktopLauncher implements ApplicationListener {
         // start recording all drawing commands
         batch.begin();
 
-        tankRenderer.render(tank);
-        treeRenderer.render(tree);
+        tankRenderer.render(gameLevel.getTank());
+        for (Tree tree : gameLevel.getTrees()) {
+            treeRenderer.render(tree);
+        }
 
         // submit all drawing requests
         batch.end();
@@ -109,6 +108,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         // level width: 10 tiles x 128px, height: 8 tiles x 128px
         config.setWindowedMode(1280, 1024);
-        new Lwjgl3Application(new GameDesktopLauncher(), config);
+        LevelCreationStrategy strategy = new FileLevelCreationStrategy("levels/level1.txt", new LevelValidator());
+        new Lwjgl3Application(new GameDesktopLauncher(strategy), config);
     }
 }
