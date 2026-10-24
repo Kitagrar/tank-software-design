@@ -17,6 +17,54 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GameLevelTest {
     @Test
+    void additionalTanksHaveExplicitPlayerImmutableCollectionsAndLiveCollision() {
+        GameLevel base = new GameLevel(5, 3, new GridPoint2(0, 0), List.of(new GridPoint2(4, 2)));
+        GridPoint2 spawn = new GridPoint2(2, 1);
+        List<GridPoint2> spawns = new ArrayList<>(List.of(spawn));
+        GameLevel level = base.withAdditionalTanks(spawns);
+        spawn.set(3, 2);
+        spawns.clear();
+        assertSame(level.getPlayerTank(), level.getTank());
+        assertEquals(2, level.getTanks().size());
+        assertEquals(1, level.getTanks().stream().filter(tank -> tank == level.getPlayerTank()).count());
+        assertTrue(level.getTanks().contains(level.getPlayerTank()));
+        assertEquals(new GridPoint2(0, 0), level.getPlayerTank().getCoordinates());
+        assertEquals(1, base.getTanks().size());
+        assertNotSame(base.getPlayerTank(), level.getPlayerTank());
+        assertThrows(UnsupportedOperationException.class, () -> level.getTanks().clear());
+        assertThrows(UnsupportedOperationException.class, () -> level.getTanks().add(new Tank(new GridPoint2(1, 1))));
+        assertThrows(UnsupportedOperationException.class, () -> level.getTrees().clear());
+        assertTrue(level.getCollisionObstacle().occupies(new GridPoint2(4, 2)));
+        assertTrue(level.getCollisionObstacle().occupies(new GridPoint2(-1, 0)));
+        for (Tank tank : level.getTanks()) {
+            GridPoint2 source = tank.getCoordinates();
+            assertTrue(level.getCollisionObstacle().occupies(source));
+            assertTrue(tank.tryMove(Direction.RIGHT, level.getCollisionObstacle()));
+            assertTrue(level.getCollisionObstacle().occupies(source));
+            assertTrue(level.getCollisionObstacle().occupies(tank.getDestinationCoordinates()));
+            tank.updateMovement(0.4f);
+            assertFalse(level.getCollisionObstacle().occupies(source));
+            assertTrue(level.getCollisionObstacle().occupies(tank.getCoordinates()));
+        }
+        assertEquals(new GridPoint2(0, 0), base.getPlayerTank().getCoordinates());
+    }
+
+    @Test
+    void rejectsInvalidAdditionalPositionsAndCopyingMovingTanks() {
+        GameLevel base = new GameLevel(3, 3, new GridPoint2(0, 0), List.of(new GridPoint2(2, 2)));
+        for (GridPoint2 position : List.of(new GridPoint2(0, 0), new GridPoint2(2, 2),
+                new GridPoint2(-1, 0), new GridPoint2(3, 0))) {
+            assertThrows(IllegalArgumentException.class, () -> base.withAdditionalTanks(List.of(position)));
+        }
+        assertThrows(IllegalArgumentException.class,
+                () -> base.withAdditionalTanks(List.of(new GridPoint2(1, 1), new GridPoint2(1, 1))));
+        GameLevel existing = base.withAdditionalTanks(List.of(new GridPoint2(1, 1)));
+        assertThrows(IllegalArgumentException.class, () -> existing.withAdditionalTanks(List.of(new GridPoint2(1, 1))));
+        assertTrue(base.getPlayerTank().tryMove(Direction.RIGHT, base.getCollisionObstacle()));
+        assertThrows(IllegalStateException.class, () -> base.withAdditionalTanks(List.of()));
+    }
+
+    @Test
     void generatedCollisionObstacleBlocksEveryTree() {
         GameLevel level = new RandomLevelCreationStrategy(20, 30, new Random(12345), new LevelValidator()).create(10, 8);
         Tank tank = level.getTank();
