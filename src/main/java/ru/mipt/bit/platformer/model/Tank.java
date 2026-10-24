@@ -3,7 +3,7 @@ package ru.mipt.bit.platformer.model;
 import com.badlogic.gdx.math.GridPoint2;
 import static com.badlogic.gdx.math.MathUtils.isEqual;
 
-public class Tank implements Movable {
+public class Tank implements Movable, Obstacle {
     private static final float MOVEMENT_SPEED = 0.4f;
 
     private GridPoint2 coordinates;
@@ -18,7 +18,7 @@ public class Tank implements Movable {
     }
 
     public boolean tryMove(Direction direction, Obstacle obstacle) {
-        if (!isEqual(movementProgress, 1f)) {
+        if (!isReadyToMove()) {
             return false;
         }
 
@@ -34,15 +34,24 @@ public class Tank implements Movable {
     }
 
     public void updateMovement(float deltaTime) {
-        if (isEqual(movementProgress, 1f)) {
+        if (isReadyToMove()) {
             return;
         }
 
         movementProgress += deltaTime / MOVEMENT_SPEED;
-        if (movementProgress >= 1f) {
+        if (movementProgress >= 1f || isEqual(movementProgress, 1f)) {
             movementProgress = 1f;
             coordinates.set(destinationCoordinates);
         }
+    }
+
+    public boolean isReadyToMove() {
+        return isEqual(movementProgress, 1f);
+    }
+
+    @Override
+    public boolean occupies(GridPoint2 cell) {
+        return coordinates.equals(cell) || destinationCoordinates.equals(cell);
     }
 
     public GridPoint2 getCoordinates() {
