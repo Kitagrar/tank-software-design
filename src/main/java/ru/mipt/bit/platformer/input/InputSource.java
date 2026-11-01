@@ -4,4 +4,8 @@ import ru.mipt.bit.platformer.model.Direction;
 
 public interface InputSource {
     boolean isPressed(Direction direction);
+
+    default boolean isShootPressed() {
+        return false;
+    }
 }
