@@ -10,8 +10,8 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import ru.mipt.bit.platformer.graphics.TankRenderer;
-import ru.mipt.bit.platformer.graphics.TreeRenderer;
+import ru.mipt.bit.platformer.graphics.GraphicalLevel;
+import ru.mipt.bit.platformer.command.Command;
 import ru.mipt.bit.platformer.control.KeyboardControlStrategy;
 import ru.mipt.bit.platformer.control.RandomAiControlStrategy;
 import ru.mipt.bit.platformer.control.TankController;
@@ -22,7 +22,6 @@ import ru.mipt.bit.platformer.level.LevelValidator;
 import ru.mipt.bit.platformer.level.RandomTankGenerator;
 import ru.mipt.bit.platformer.model.GameLevel;
 import ru.mipt.bit.platformer.model.Tank;
-import ru.mipt.bit.platformer.model.Tree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +44,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private GameLevel gameLevel;
     private TankController playerController;
     private final List<TankController> aiControllers = new ArrayList<>();
-    private TankRenderer tankRenderer;
-    private TreeRenderer treeRenderer;
+    private GraphicalLevel graphicalLevel;
 
     public GameDesktopLauncher(LevelCreationStrategy levelStrategy, int aiTankCount,
                                RandomTankGenerator tankGenerator, Random aiSeeds) {
@@ -70,16 +68,16 @@ public class GameDesktopLauncher implements ApplicationListener {
         gameLevel = levelStrategy.create(groundLayer.getWidth(), groundLayer.getHeight());
         gameLevel = gameLevel.withAdditionalTanks(tankGenerator.generatePositions(gameLevel, aiTankCount));
         playerController = new TankController(gameLevel.getPlayerTank(),
-                new KeyboardControlStrategy(new LibGdxInputSource()), gameLevel.getCollisionObstacle());
+                new KeyboardControlStrategy(new LibGdxInputSource()), gameLevel);
         aiControllers.clear();
         for (Tank tank : gameLevel.getTanks()) {
             if (tank != gameLevel.getPlayerTank()) {
                 aiControllers.add(new TankController(tank,
-                        new RandomAiControlStrategy(new Random(aiSeeds.nextLong())), gameLevel.getCollisionObstacle()));
+                        new RandomAiControlStrategy(new Random(aiSeeds.nextLong())), gameLevel));
             }
         }
-        tankRenderer = new TankRenderer(batch, groundLayer);
-        treeRenderer = new TreeRenderer(batch, groundLayer);
+        graphicalLevel = new GraphicalLevel(batch, groundLayer);
+        gameLevel.addObserver(graphicalLevel);
     }
 
     @Override
@@ -91,26 +89,25 @@ public class GameDesktopLauncher implements ApplicationListener {
         // get time passed since the last render
         float deltaTime = Gdx.graphics.getDeltaTime();
 
-        playerController.update();
+        // 1. Create commands without executing them.
+        List<Command> commands = new ArrayList<>();
+        playerController.createCommand().ifPresent(commands::add);
         for (TankController controller : aiControllers) {
-            controller.update();
+            controller.createCommand().ifPresent(commands::add);
         }
-        for (Tank tank : gameLevel.getTanks()) {
-            tank.updateMovement(deltaTime);
-        }
+        // 2. Execute the complete batch of decisions.
+        commands.forEach(Command::execute);
+        // 3. Advance the logical level.
+        gameLevel.tick(deltaTime);
 
+        // 4. Render the map and observer-maintained graphical level.
         // render each tile of the level
         levelRenderer.render();
 
         // start recording all drawing commands
         batch.begin();
 
-        for (Tank tank : gameLevel.getTanks()) {
-            tankRenderer.render(tank);
-        }
-        for (Tree tree : gameLevel.getTrees()) {
-            treeRenderer.render(tree);
-        }
+        graphicalLevel.render();
 
         // submit all drawing requests
         batch.end();
@@ -134,8 +131,8 @@ public class GameDesktopLauncher implements ApplicationListener {
     @Override
     public void dispose() {
         // dispose of all the native resources (classes which implement com.badlogic.gdx.utils.Disposable)
-        treeRenderer.dispose();
-        tankRenderer.dispose();
+        gameLevel.removeObserver(graphicalLevel);
+        graphicalLevel.dispose();
         level.dispose();
         batch.dispose();
     }
