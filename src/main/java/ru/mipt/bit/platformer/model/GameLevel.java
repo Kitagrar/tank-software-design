@@ -5,7 +5,9 @@ import com.badlogic.gdx.math.GridPoint2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Objects;
 
 /** Runtime objects built from a layout already checked by its creation strategy. */
 public class GameLevel {
@@ -15,6 +17,9 @@ public class GameLevel {
     private final List<Tank> tanks;
     private final List<Tree> trees;
     private final Obstacle collisionObstacle;
+    private final MapBorder border;
+    private final List<Bullet> bullets = new ArrayList<>();
+    private final Set<LevelObserver> observers = new LinkedHashSet<>();
 
     public GameLevel(int width, int height, GridPoint2 tankPosition, List<GridPoint2> treePositions) {
         this(width, height, tankPosition, treePositions, List.of());
@@ -30,17 +35,19 @@ public class GameLevel {
         for (GridPoint2 position : aiPositions) {
             createdTanks.add(new Tank(position));
         }
-        tanks = List.copyOf(createdTanks);
+        tanks = createdTanks;
         List<Tree> createdTrees = new ArrayList<>();
         List<Obstacle> obstacles = new ArrayList<>();
-        obstacles.add(new MapBorder(width, height));
+        border = new MapBorder(width, height);
+        obstacles.add(border);
         for (GridPoint2 position : treePositions) {
             Tree tree = new Tree(position);
             createdTrees.add(tree);
             obstacles.add(tree);
         }
         trees = List.copyOf(createdTrees);
-        obstacles.addAll(tanks);
+        // Keep the shared composite stable, but query current tank membership.
+        obstacles.add(cell -> tanks.stream().anyMatch(tank -> tank.occupies(cell)));
         collisionObstacle = new CompositeObstacle(obstacles.toArray(new Obstacle[0]));
     }
 
@@ -81,7 +88,7 @@ public class GameLevel {
     }
 
     public List<Tank> getTanks() {
-        return tanks;
+        return List.copyOf(tanks);
     }
 
     /** Compatibility with the single-player HW4 API. */
@@ -95,5 +102,142 @@ public class GameLevel {
 
     public Obstacle getCollisionObstacle() {
         return collisionObstacle;
+    }
+
+    public boolean containsTank(Tank tank) {
+        return tanks.contains(tank);
+    }
+
+    public List<Bullet> getBullets() {
+        return List.copyOf(bullets);
+    }
+
+    public void addBullet(Bullet bullet) {
+        Objects.requireNonNull(bullet);
+        if (bullets.contains(bullet)) {
+            throw new IllegalArgumentException("Bullet is already in this level");
+        }
+        // Occupied/outside spawn cells are valid shots, resolved at the next tick.
+        bullets.add(bullet);
+        notifyAdded(bullet);
+    }
+
+    public void removeBullet(Bullet bullet) {
+        if (bullets.remove(bullet)) {
+            notifyRemoved(bullet);
+        }
+    }
+
+    public void removeTank(Tank tank) {
+        Objects.requireNonNull(tank);
+        if (tank.isAlive()) {
+            throw new IllegalArgumentException("Only dead tanks may be removed");
+        }
+        if (tanks.remove(tank)) {
+            notifyRemoved(tank);
+        }
+    }
+
+    /** Replay initial entities through the same observer API as runtime additions. */
+    public void addObserver(LevelObserver observer) {
+        Objects.requireNonNull(observer);
+        if (observers.add(observer)) {
+            List<LevelEntity> initial = new ArrayList<>(tanks);
+            initial.addAll(trees);
+            initial.addAll(bullets);
+            for (LevelEntity entity : initial) {
+                if (!observers.contains(observer)) {
+                    break;
+                }
+                observer.onObjectAdded(entity);
+            }
+        }
+    }
+
+    public void removeObserver(LevelObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyAdded(LevelEntity entity) {
+        for (LevelObserver observer : List.copyOf(observers)) {
+            observer.onObjectAdded(entity);
+        }
+    }
+
+    private void notifyRemoved(LevelEntity entity) {
+        for (LevelObserver observer : List.copyOf(observers)) {
+            observer.onObjectRemoved(entity);
+        }
+    }
+
+    public void tick(float deltaTime) {
+        if (!Float.isFinite(deltaTime) || deltaTime < 0) {
+            throw new IllegalArgumentException("Delta time must be finite and non-negative");
+        }
+        for (Tank tank : List.copyOf(tanks)) {
+            if (!tank.isAlive()) {
+                removeTank(tank);
+            }
+        }
+        // Check contacts before movement can release a tank's source cell.
+        resolveCurrentContacts();
+        for (Tank tank : List.copyOf(tanks)) {
+            tank.updateMovement(deltaTime);
+        }
+        resolveCurrentContacts();
+
+        // Advance all projectiles to the next cell event together. No projectile
+        // runs its entire large delta ahead of another projectile's first step.
+        double remaining = deltaTime;
+        while (remaining > 0 && !bullets.isEmpty()) {
+            List<Bullet> snapshot = List.copyOf(bullets);
+            double untilStep = snapshot.stream().mapToDouble(Bullet::timeUntilStep).min().orElseThrow();
+            double elapsed = Math.min(remaining, untilStep);
+            for (Bullet bullet : snapshot) {
+                bullet.elapse(elapsed);
+            }
+            remaining -= elapsed;
+            for (Bullet bullet : snapshot) {
+                if (bullets.contains(bullet) && bullet.timeUntilStep() == 0) {
+                    bullet.step();
+                    resolveBulletCollision(bullet);
+                }
+            }
+        }
+    }
+
+    private void resolveCurrentContacts() {
+        for (Bullet bullet : List.copyOf(bullets)) {
+            if (bullets.contains(bullet)) {
+                resolveBulletCollision(bullet);
+            }
+        }
+    }
+
+    private void resolveBulletCollision(Bullet bullet) {
+        GridPoint2 cell = bullet.getCoordinates();
+        if (border.occupies(cell) || trees.stream().anyMatch(tree -> tree.occupies(cell))) {
+            removeBullet(bullet);
+            return;
+        }
+        for (Tank tank : List.copyOf(tanks)) {
+            if (bullet.canHit(tank) && tank.occupies(cell)) {
+                tank.takeDamage(bullet.getDamage());
+                removeBullet(bullet);
+                if (!tank.isAlive()) {
+                    removeTank(tank);
+                }
+                return;
+            }
+        }
+        List<Bullet> contacts = bullets.stream()
+                .filter(other -> other.getCoordinates().equals(cell)).toList();
+        if (contacts.size() > 1) {
+            // Remove the whole contact group before publishing any removal.
+            bullets.removeAll(contacts);
+            for (Bullet contact : contacts) {
+                notifyRemoved(contact);
+            }
+        }
     }
 }

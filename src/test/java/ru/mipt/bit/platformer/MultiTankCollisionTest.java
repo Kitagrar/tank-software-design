@@ -3,6 +3,8 @@ package ru.mipt.bit.platformer;
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.jupiter.api.Test;
 import ru.mipt.bit.platformer.control.TankController;
+import ru.mipt.bit.platformer.control.TankAction;
+import ru.mipt.bit.platformer.command.Command;
 import ru.mipt.bit.platformer.model.*;
 
 import java.util.List;
@@ -42,8 +44,14 @@ class MultiTankCollisionTest {
         GameLevel level = level(new GridPoint2(0, 1), new GridPoint2(2, 1));
         Tank a = level.getPlayerTank();
         Tank b = level.getTanks().get(1);
-        new TankController(a, () -> Optional.of(Direction.RIGHT), level.getCollisionObstacle()).update();
-        new TankController(b, () -> Optional.of(Direction.LEFT), level.getCollisionObstacle()).update();
+        Command first = new TankController(a, () -> Optional.of(TankAction.move(Direction.RIGHT)), level)
+                .createCommand().orElseThrow();
+        Command second = new TankController(b, () -> Optional.of(TankAction.move(Direction.LEFT)), level)
+                .createCommand().orElseThrow();
+        assertTrue(a.isReadyToMove());
+        assertTrue(b.isReadyToMove());
+        first.execute();
+        second.execute();
         assertEquals(new GridPoint2(1, 1), a.getDestinationCoordinates());
         assertEquals(new GridPoint2(2, 1), b.getDestinationCoordinates());
         assertFalse(a.isReadyToMove());
