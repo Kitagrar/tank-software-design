@@ -14,8 +14,10 @@ public final class RandomAiControlStrategy implements TankControlStrategy {
     }
 
     @Override
-    public Optional<Direction> chooseDirection() {
+    public Optional<TankAction> chooseAction() {
         Direction[] directions = Direction.values();
-        return Optional.of(directions[random.nextInt(directions.length)]);
+        int choice = random.nextInt(directions.length + 1);
+        return Optional.of(choice == directions.length
+                ? TankAction.shoot() : TankAction.move(directions[choice]));
     }
 }

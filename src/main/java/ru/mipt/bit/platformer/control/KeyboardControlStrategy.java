@@ -14,10 +14,13 @@ public final class KeyboardControlStrategy implements TankControlStrategy {
     }
 
     @Override
-    public Optional<Direction> chooseDirection() {
+    public Optional<TankAction> chooseAction() {
+        if (inputSource.isShootPressed()) {
+            return Optional.of(TankAction.shoot());
+        }
         for (Direction direction : Direction.values()) {
             if (inputSource.isPressed(direction)) {
-                return Optional.of(direction);
+                return Optional.of(TankAction.move(direction));
             }
         }
         return Optional.empty();

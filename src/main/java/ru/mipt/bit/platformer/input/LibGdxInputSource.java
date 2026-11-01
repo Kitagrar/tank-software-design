@@ -14,6 +14,11 @@ import static com.badlogic.gdx.Input.Keys.W;
 
 public class LibGdxInputSource implements InputSource {
     @Override
+    public boolean isShootPressed() {
+        return Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.SPACE);
+    }
+
+    @Override
     public boolean isPressed(Direction direction) {
         switch (direction) {
             case UP:
