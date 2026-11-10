@@ -8,6 +8,30 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TankHealthTest {
     @Test
+    void defaultHealthAndMaxHealthAreOneHundred() {
+        Tank tank = new Tank(new GridPoint2());
+        assertEquals(100, tank.getHealth());
+        assertEquals(100, tank.getMaxHealth());
+    }
+
+    @Test
+    void customInitialHealthDefinesImmutableMaximum() {
+        Tank tank = new Tank(new GridPoint2(), 80);
+        assertEquals(80, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+        tank.takeDamage(20);
+        assertEquals(60, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+        tank.takeDamage(60);
+        assertFalse(tank.isAlive());
+        assertEquals(0, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+        tank.takeDamage(Integer.MAX_VALUE);
+        assertEquals(0, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+    }
+
+    @Test
     void damageReducesHealthAndZeroIsDead() {
         Tank tank = new Tank(new GridPoint2(), 30);
         tank.takeDamage(11);

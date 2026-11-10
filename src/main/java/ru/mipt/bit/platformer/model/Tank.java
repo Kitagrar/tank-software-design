@@ -12,6 +12,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     private float movementProgress = 1f;
     private Direction direction = Direction.RIGHT;
     private int health;
+    private final int maxHealth;
 
     public Tank(GridPoint2 initialCoordinates) {
         this(initialCoordinates, DEFAULT_HEALTH);
@@ -24,6 +25,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
         this.coordinates = new GridPoint2(initialCoordinates);
         this.destinationCoordinates = new GridPoint2(initialCoordinates);
         this.health = health;
+        this.maxHealth = health;
     }
 
     public boolean tryMove(Direction direction, Obstacle obstacle) {
@@ -92,6 +94,10 @@ public class Tank implements Movable, Obstacle, LevelEntity {
 
     public int getHealth() {
         return health;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
     }
 
     public boolean isAlive() {
