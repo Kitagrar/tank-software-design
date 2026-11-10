@@ -14,6 +14,11 @@ import static com.badlogic.gdx.Input.Keys.W;
 
 public class LibGdxInputSource implements InputSource {
     @Override
+    public boolean isHealthTogglePressed() {
+        return Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.L);
+    }
+
+    @Override
     public boolean isShootPressed() {
         return Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.SPACE);
     }
