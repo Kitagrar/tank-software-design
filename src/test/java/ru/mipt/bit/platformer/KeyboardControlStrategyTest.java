@@ -33,6 +33,7 @@ class KeyboardControlStrategyTest {
     void movementOnlyLambdaHasShootingDisabled() {
         InputSource input = direction -> false;
         assertFalse(input.isShootPressed());
+        assertFalse(input.isHealthTogglePressed());
     }
 
     @ParameterizedTest

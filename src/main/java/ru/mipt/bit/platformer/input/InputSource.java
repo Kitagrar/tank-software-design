@@ -8,4 +8,8 @@ public interface InputSource {
     default boolean isShootPressed() {
         return false;
     }
+
+    default boolean isHealthTogglePressed() {
+        return false;
+    }
 }
