@@ -13,9 +13,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import ru.mipt.bit.platformer.graphics.GraphicalLevel;
 import ru.mipt.bit.platformer.command.Command;
 import ru.mipt.bit.platformer.control.KeyboardControlStrategy;
+import ru.mipt.bit.platformer.control.DisplayController;
 import ru.mipt.bit.platformer.control.RandomAiControlStrategy;
 import ru.mipt.bit.platformer.control.TankController;
 import ru.mipt.bit.platformer.input.LibGdxInputSource;
+import ru.mipt.bit.platformer.input.InputSource;
 import ru.mipt.bit.platformer.level.FileLevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelValidator;
@@ -43,6 +45,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     private MapRenderer levelRenderer;
     private GameLevel gameLevel;
     private TankController playerController;
+    private DisplayController displayController;
     private final List<TankController> aiControllers = new ArrayList<>();
     private GraphicalLevel graphicalLevel;
 
@@ -67,8 +70,9 @@ public class GameDesktopLauncher implements ApplicationListener {
         TiledMapTileLayer groundLayer = getSingleLayer(level);
         gameLevel = levelStrategy.create(groundLayer.getWidth(), groundLayer.getHeight());
         gameLevel = gameLevel.withAdditionalTanks(tankGenerator.generatePositions(gameLevel, aiTankCount));
+        InputSource inputSource = new LibGdxInputSource();
         playerController = new TankController(gameLevel.getPlayerTank(),
-                new KeyboardControlStrategy(new LibGdxInputSource()), gameLevel);
+                new KeyboardControlStrategy(inputSource), gameLevel);
         aiControllers.clear();
         for (Tank tank : gameLevel.getTanks()) {
             if (tank != gameLevel.getPlayerTank()) {
@@ -77,6 +81,7 @@ public class GameDesktopLauncher implements ApplicationListener {
             }
         }
         graphicalLevel = new GraphicalLevel(batch, groundLayer);
+        displayController = new DisplayController(inputSource, graphicalLevel);
         gameLevel.addObserver(graphicalLevel);
     }
 
@@ -91,6 +96,7 @@ public class GameDesktopLauncher implements ApplicationListener {
 
         // 1. Create commands without executing them.
         List<Command> commands = new ArrayList<>();
+        displayController.createCommand().ifPresent(commands::add);
         playerController.createCommand().ifPresent(commands::add);
         for (TankController controller : aiControllers) {
             controller.createCommand().ifPresent(commands::add);
