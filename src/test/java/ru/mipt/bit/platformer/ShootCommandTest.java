@@ -11,6 +11,29 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ShootCommandTest {
     @Test
+    void heavyTankCommandIsSafeNoOp() {
+        GameLevel level = new GameLevel(5, 3, new GridPoint2(1, 1), List.of());
+        Tank tank = level.getPlayerTank();
+        tank.takeDamage(86);
+        new ShootCommand(tank, level).execute();
+        assertTrue(level.getBullets().isEmpty());
+        assertEquals(14, tank.getHealth());
+        assertTrue(level.containsTank(tank));
+    }
+
+    @Test
+    void commandCreatedBeforeHeavyTransitionRechecksCapabilityOnExecution() {
+        GameLevel level = new GameLevel(5, 3, new GridPoint2(1, 1), List.of());
+        Tank tank = level.getPlayerTank();
+        ShootCommand command = new ShootCommand(tank, level);
+        assertTrue(tank.canShoot());
+        tank.takeDamage(86);
+        command.execute();
+        assertTrue(level.getBullets().isEmpty());
+        assertFalse(tank.canShoot());
+    }
+
+    @Test
     void asksReceiverExactlyOnceAndRegistersItsConfiguredBullet() {
         int[] shots = {0};
         Bullet configured = new Bullet(new GridPoint2(2, 1), Direction.RIGHT, 17, 0.2f);
