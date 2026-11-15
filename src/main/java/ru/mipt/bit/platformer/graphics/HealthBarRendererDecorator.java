@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.model.Tank;
-import ru.mipt.bit.platformer.util.TileMovement;
+import ru.mipt.bit.platformer.util.TileRectangleInterpolator;
 
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ public final class HealthBarRendererDecorator implements EntityRenderer<Tank> {
 
     private final EntityRenderer<Tank> delegate;
     private final Batch batch;
-    private final TileMovement tileMovement;
+    private final TileRectangleInterpolator tileRectangleInterpolator;
     private final Texture texture;
     private final Rectangle rectangle = new Rectangle(0, 0, BAR_WIDTH, BAR_HEIGHT);
 
@@ -29,7 +29,7 @@ public final class HealthBarRendererDecorator implements EntityRenderer<Tank> {
                                       TiledMapTileLayer tileLayer) {
         this.delegate = Objects.requireNonNull(delegate);
         this.batch = Objects.requireNonNull(batch);
-        tileMovement = new TileMovement(tileLayer, Interpolation.smooth);
+        tileRectangleInterpolator = new TileRectangleInterpolator(tileLayer, Interpolation.smooth);
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         try {
             pixmap.setColor(Color.WHITE);
@@ -43,7 +43,7 @@ public final class HealthBarRendererDecorator implements EntityRenderer<Tank> {
     @Override
     public void render(Tank tank) {
         delegate.render(tank);
-        tileMovement.moveRectangleBetweenTileCenters(rectangle, tank.getCoordinates(),
+        tileRectangleInterpolator.moveRectangleBetweenTileCenters(rectangle, tank.getCoordinates(),
                 tank.getDestinationCoordinates(), tank.getMovementProgress());
         float y = rectangle.y + VERTICAL_OFFSET;
         float fraction = MathUtils.clamp((float) tank.getHealth() / tank.getMaxHealth(), 0f, 1f);

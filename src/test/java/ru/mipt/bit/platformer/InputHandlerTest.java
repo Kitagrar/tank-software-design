@@ -3,7 +3,7 @@ package ru.mipt.bit.platformer;
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.jupiter.api.Test;
 import ru.mipt.bit.platformer.input.InputHandler;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.Movable;
 import ru.mipt.bit.platformer.model.Tank;

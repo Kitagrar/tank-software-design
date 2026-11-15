@@ -11,10 +11,71 @@ import ru.mipt.bit.platformer.model.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import ru.mipt.bit.platformer.port.InputSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TankControllerTest {
+    @Test
+    void heavyAiChoosesShootOnceWithoutRerollThenCanChooseMovement() {
+        GameLevel level = new GameLevel(5, 3, new GridPoint2(1, 1), List.of());
+        Tank tank = level.getPlayerTank();
+        tank.takeDamage(86);
+        int[] decisions = {0};
+        Random random = new Random(1) {
+            @Override
+            public int nextInt(int bound) {
+                assertEquals(5, bound);
+                decisions[0]++;
+                return decisions[0] == 1 ? 4 : 1;
+            }
+        };
+        TankController controller = new TankController(tank, new RandomAiControlStrategy(random), level);
+        Command shoot = controller.createCommand().orElseThrow();
+        assertInstanceOf(ShootCommand.class, shoot);
+        assertEquals(1, decisions[0]);
+        shoot.execute();
+        assertTrue(level.getBullets().isEmpty());
+        assertEquals(1, decisions[0]);
+        assertTrue(tank.isStationary());
+
+        Command move = controller.createCommand().orElseThrow();
+        assertInstanceOf(MoveCommand.class, move);
+        assertEquals(2, decisions[0]);
+        move.execute();
+        assertEquals(new GridPoint2(2, 1), tank.getDestinationCoordinates());
+        level.tick(0.4f);
+        assertEquals(1f / 3, tank.getMovementProgress(), 1e-6f);
+        assertTrue(controller.createCommand().isEmpty());
+        assertEquals(2, decisions[0]);
+    }
+
+    @Test
+    void keyboardShootWhileHeavyIsSafeAndCreatesNoBullet() {
+        GameLevel level = new GameLevel(5, 3, new GridPoint2(1, 1), List.of());
+        level.getPlayerTank().takeDamage(86);
+        InputSource input = new InputSource() {
+            @Override
+            public boolean isPressed(Direction direction) {
+                return false;
+            }
+
+            @Override
+            public boolean isShootPressed() {
+                return true;
+            }
+        };
+        TankController controller = new TankController(level.getPlayerTank(),
+                new KeyboardControlStrategy(input), level);
+        Command command = controller.createCommand().orElseThrow();
+        assertInstanceOf(ShootCommand.class, command);
+        command.execute();
+        level.tick(0);
+        assertTrue(level.getBullets().isEmpty());
+        assertTrue(level.containsTank(level.getPlayerTank()));
+        assertEquals(14, level.getPlayerTank().getHealth());
+    }
+
     @Test
     void creatingMoveAndShootCommandsHasNoModelSideEffects() {
         GameLevel level = new GameLevel(5, 3, new GridPoint2(1, 1), List.of());
@@ -26,14 +87,14 @@ class TankControllerTest {
         assertInstanceOf(MoveCommand.class, move);
         assertInstanceOf(ShootCommand.class, shoot);
         assertEquals(Direction.RIGHT, tank.getDirection());
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
         assertTrue(level.getBullets().isEmpty());
         shoot.execute();
         assertEquals(1, level.getBullets().size());
         move.execute();
         assertEquals(Direction.UP, tank.getDirection());
         assertEquals(new GridPoint2(1, 2), tank.getDestinationCoordinates());
-        assertFalse(tank.isReadyToMove());
+        assertFalse(tank.isStationary());
     }
 
     @Test
@@ -43,7 +104,7 @@ class TankControllerTest {
                 new KeyboardControlStrategy(direction -> false), level);
         assertTrue(controller.createCommand().isEmpty());
         assertTrue(level.getBullets().isEmpty());
-        assertTrue(level.getPlayerTank().isReadyToMove());
+        assertTrue(level.getPlayerTank().isStationary());
     }
 
     @Test
@@ -69,7 +130,7 @@ class TankControllerTest {
             staleMove.execute();
             assertEquals(before, decisions[0]);
             assertEquals(cell, tank.getCoordinates());
-            assertTrue(tank.isReadyToMove());
+            assertTrue(tank.isStationary());
             assertFalse(level.containsTank(tank));
         }
         assertTrue(level.getTanks().isEmpty());
@@ -100,7 +161,7 @@ class TankControllerTest {
         controller.createCommand().orElseThrow().execute();
         controller.createCommand().orElseThrow().execute();
         assertEquals(2, level.getBullets().size());
-        assertTrue(level.getPlayerTank().isReadyToMove());
+        assertTrue(level.getPlayerTank().isStationary());
     }
 
     @Test
@@ -134,7 +195,7 @@ class TankControllerTest {
         Tank tank = observedLevel.getPlayerTank();
         new TankController(tank, new KeyboardControlStrategy(direction -> false), observedLevel).update();
         assertEquals(0, collisionChecks[0]);
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
     }
 
     @Test
@@ -147,7 +208,7 @@ class TankControllerTest {
             GameLevel level = new GameLevel(5, 5, new GridPoint2(2, 2), List.of());
             Tank tank = level.getPlayerTank();
             new TankController(tank, strategy, level).update();
-            assertFalse(tank.isReadyToMove());
+            assertFalse(tank.isStationary());
             assertEquals(1, Math.abs(tank.getDestinationCoordinates().x - 2)
                     + Math.abs(tank.getDestinationCoordinates().y - 2));
         }
@@ -173,7 +234,7 @@ class TankControllerTest {
         controller.update();
         assertEquals(1, decisions[0]);
         assertEquals(1, attempts[0]);
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
         controller.update();
         assertEquals(2, decisions[0]);
         assertEquals(2, attempts[0]);

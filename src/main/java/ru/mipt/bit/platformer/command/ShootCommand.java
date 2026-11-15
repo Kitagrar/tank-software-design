@@ -16,7 +16,7 @@ public final class ShootCommand implements Command {
 
     @Override
     public void execute() {
-        if (receiver.isAlive() && receiver.isReadyToMove() && level.containsTank(receiver)) {
+        if (level.containsTank(receiver) && receiver.canShoot()) {
             level.addBullet(receiver.shoot());
         }
     }

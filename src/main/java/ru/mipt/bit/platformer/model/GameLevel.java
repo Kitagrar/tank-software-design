@@ -54,7 +54,7 @@ public class GameLevel {
     /** Initialization only: copies stationary entities into a new aggregate with extra tanks. */
     public GameLevel withAdditionalTanks(List<GridPoint2> positions) {
         for (Tank tank : tanks) {
-            if (!tank.isReadyToMove()) {
+            if (!tank.isStationary()) {
                 throw new IllegalStateException("Additional tanks must be configured before movement");
             }
         }

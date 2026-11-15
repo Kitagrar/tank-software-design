@@ -4,11 +4,29 @@ import com.badlogic.gdx.math.GridPoint2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import ru.mipt.bit.platformer.model.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TankShootingTest {
+    @ParameterizedTest
+    @ValueSource(ints = {100, 70, 15})
+    void lightAndMediumCanShootOnlyWhenStationary(int health) {
+        Tank tank = new Tank(new GridPoint2(1, 1));
+        if (health < tank.getHealth()) {
+            tank.takeDamage(tank.getHealth() - health);
+        }
+        assertTrue(tank.canShoot());
+        assertEquals(new GridPoint2(2, 1), tank.shoot().getCoordinates());
+        assertTrue(tank.tryMove(Direction.RIGHT, cell -> false));
+        assertFalse(tank.canShoot());
+        assertThrows(IllegalStateException.class, tank::shoot);
+        tank.updateMovement(health > 70 ? 0.4f : 0.8f);
+        assertTrue(tank.canShoot());
+        assertEquals(new GridPoint2(3, 1), tank.shoot().getCoordinates());
+    }
+
     @Test
     void startsFacingRightAndBlockedMoveDoesNotTurn() {
         Tank tank = new Tank(new GridPoint2(2, 2));

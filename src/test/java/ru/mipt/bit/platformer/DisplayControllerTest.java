@@ -8,8 +8,8 @@ import ru.mipt.bit.platformer.command.ToggleHealthBarsCommand;
 import ru.mipt.bit.platformer.control.DisplayController;
 import ru.mipt.bit.platformer.control.KeyboardControlStrategy;
 import ru.mipt.bit.platformer.control.TankController;
-import ru.mipt.bit.platformer.graphics.HealthBarDisplay;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.HealthBarDisplay;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.GameLevel;
 

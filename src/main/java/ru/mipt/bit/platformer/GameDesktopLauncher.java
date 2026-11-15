@@ -17,11 +17,11 @@ import ru.mipt.bit.platformer.control.DisplayController;
 import ru.mipt.bit.platformer.control.RandomAiControlStrategy;
 import ru.mipt.bit.platformer.control.TankController;
 import ru.mipt.bit.platformer.input.LibGdxInputSource;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.level.FileLevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelValidator;
-import ru.mipt.bit.platformer.level.RandomTankGenerator;
+import ru.mipt.bit.platformer.level.RandomTankPositionGenerator;
 import ru.mipt.bit.platformer.model.GameLevel;
 import ru.mipt.bit.platformer.model.Tank;
 
@@ -33,11 +33,12 @@ import java.util.Random;
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
+/** Infrastructure driving adapter for LibGDX lifecycle and application composition root. */
 public class GameDesktopLauncher implements ApplicationListener {
 
     private final LevelCreationStrategy levelStrategy;
     private final int aiTankCount;
-    private final RandomTankGenerator tankGenerator;
+    private final RandomTankPositionGenerator tankPositionGenerator;
     private final Random aiSeeds;
     private Batch batch;
 
@@ -50,13 +51,13 @@ public class GameDesktopLauncher implements ApplicationListener {
     private GraphicalLevel graphicalLevel;
 
     public GameDesktopLauncher(LevelCreationStrategy levelStrategy, int aiTankCount,
-                               RandomTankGenerator tankGenerator, Random aiSeeds) {
+                               RandomTankPositionGenerator tankPositionGenerator, Random aiSeeds) {
         if (aiTankCount < 0) {
             throw new IllegalArgumentException("AI tank count must be non-negative");
         }
         this.levelStrategy = Objects.requireNonNull(levelStrategy);
         this.aiTankCount = aiTankCount;
-        this.tankGenerator = Objects.requireNonNull(tankGenerator);
+        this.tankPositionGenerator = Objects.requireNonNull(tankPositionGenerator);
         this.aiSeeds = Objects.requireNonNull(aiSeeds);
     }
 
@@ -69,7 +70,7 @@ public class GameDesktopLauncher implements ApplicationListener {
         levelRenderer = createSingleLayerMapRenderer(level, batch);
         TiledMapTileLayer groundLayer = getSingleLayer(level);
         gameLevel = levelStrategy.create(groundLayer.getWidth(), groundLayer.getHeight());
-        gameLevel = gameLevel.withAdditionalTanks(tankGenerator.generatePositions(gameLevel, aiTankCount));
+        gameLevel = gameLevel.withAdditionalTanks(tankPositionGenerator.generatePositions(gameLevel, aiTankCount));
         InputSource inputSource = new LibGdxInputSource();
         playerController = new TankController(gameLevel.getPlayerTank(),
                 new KeyboardControlStrategy(inputSource), gameLevel);
@@ -150,6 +151,6 @@ public class GameDesktopLauncher implements ApplicationListener {
         LevelCreationStrategy strategy = new FileLevelCreationStrategy("levels/level1.txt", new LevelValidator());
         int aiTankCount = 3;
         new Lwjgl3Application(new GameDesktopLauncher(strategy, aiTankCount,
-                new RandomTankGenerator(new Random(12345)), new Random(67890)), config);
+                new RandomTankPositionGenerator(new Random(12345)), new Random(67890)), config);
     }
 }

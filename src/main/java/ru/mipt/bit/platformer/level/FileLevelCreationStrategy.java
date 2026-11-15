@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/** Mixed infrastructure/application boundary: classpath loading, parsing and level construction. */
 public class FileLevelCreationStrategy implements LevelCreationStrategy {
     private final String resourceName;
     private final LevelValidator validator;
@@ -31,7 +32,7 @@ public class FileLevelCreationStrategy implements LevelCreationStrategy {
             throw new IllegalArgumentException("Level resource not found: " + resourceName);
         }
         try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-            return parse(reader, width, height);
+            return parseValidated(reader, width, height);
         } catch (IOException exception) {
             throw new UncheckedIOException("Cannot read level resource: " + resourceName, exception);
         }
@@ -40,6 +41,10 @@ public class FileLevelCreationStrategy implements LevelCreationStrategy {
     /** Parses without closing the caller's reader. */
     public GameLevel parse(Reader reader, int width, int height) {
         validator.validateDimensions(width, height);
+        return parseValidated(reader, width, height);
+    }
+
+    private GameLevel parseValidated(Reader reader, int width, int height) {
         BufferedReader buffered = new BufferedReader(reader);
         List<String> rows = new ArrayList<>();
         try {

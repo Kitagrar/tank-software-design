@@ -1,11 +1,16 @@
 package ru.mipt.bit.platformer.model;
 
 import com.badlogic.gdx.math.GridPoint2;
+import ru.mipt.bit.platformer.model.state.TankState;
+import ru.mipt.bit.platformer.model.state.LightTankState;
+import ru.mipt.bit.platformer.model.state.MediumTankState;
+import ru.mipt.bit.platformer.model.state.HeavyTankState;
 import static com.badlogic.gdx.math.MathUtils.isEqual;
 
+/** Domain entity and State-pattern context; health selects its movement/shooting policy. */
 public class Tank implements Movable, Obstacle, LevelEntity {
     public static final int DEFAULT_HEALTH = 100;
-    private static final float MOVEMENT_SPEED = 0.4f;
+    private static final float BASE_MOVEMENT_DURATION = 0.4f;
 
     private GridPoint2 coordinates;
     private GridPoint2 destinationCoordinates;
@@ -13,6 +18,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     private Direction direction = Direction.RIGHT;
     private int health;
     private final int maxHealth;
+    private TankState state = LightTankState.INSTANCE;
 
     public Tank(GridPoint2 initialCoordinates) {
         this(initialCoordinates, DEFAULT_HEALTH);
@@ -29,7 +35,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public boolean tryMove(Direction direction, Obstacle obstacle) {
-        if (!isAlive() || !isReadyToMove()) {
+        if (!isAlive() || !isStationary()) {
             return false;
         }
 
@@ -45,18 +51,19 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public void updateMovement(float deltaTime) {
-        if (isReadyToMove()) {
+        if (isStationary()) {
             return;
         }
 
-        movementProgress += deltaTime / MOVEMENT_SPEED;
+        float duration = BASE_MOVEMENT_DURATION * state.movementDurationMultiplier();
+        movementProgress += deltaTime / duration;
         if (movementProgress >= 1f || isEqual(movementProgress, 1f)) {
             movementProgress = 1f;
             coordinates.set(destinationCoordinates);
         }
     }
 
-    public boolean isReadyToMove() {
+    public boolean isStationary() {
         return isEqual(movementProgress, 1f);
     }
 
@@ -86,8 +93,8 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public Bullet shoot() {
-        if (!isAlive() || !isReadyToMove()) {
-            throw new IllegalStateException("Only a living stationary tank can shoot");
+        if (!canShoot()) {
+            throw new IllegalStateException("Tank must be alive, stationary and permitted to shoot by its state");
         }
         return new Bullet(new GridPoint2(coordinates).add(direction.delta()), direction, this);
     }
@@ -104,11 +111,29 @@ public class Tank implements Movable, Obstacle, LevelEntity {
         return health > 0;
     }
 
+    public boolean canShoot() {
+        return isAlive() && isStationary() && state.canShoot();
+    }
+
     public void takeDamage(int damage) {
         if (damage <= 0) {
             throw new IllegalArgumentException("Damage must be positive");
         }
         health = Math.max(0, health - damage);
+        if (isAlive()) {
+            updateStateFromHealth();
+        }
+    }
+
+    private void updateStateFromHealth() {
+        long scaledHealth = (long) health * 100;
+        if (scaledHealth > (long) maxHealth * 70) {
+            state = LightTankState.INSTANCE;
+        } else if (scaledHealth >= (long) maxHealth * 15) {
+            state = MediumTankState.INSTANCE;
+        } else {
+            state = HeavyTankState.INSTANCE;
+        }
     }
 
     public void setCoordinates(GridPoint2 coordinates) {

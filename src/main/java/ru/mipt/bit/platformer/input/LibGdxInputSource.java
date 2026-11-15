@@ -2,6 +2,7 @@ package ru.mipt.bit.platformer.input;
 
 import com.badlogic.gdx.Gdx;
 import ru.mipt.bit.platformer.model.Direction;
+import ru.mipt.bit.platformer.port.InputSource;
 
 import static com.badlogic.gdx.Input.Keys.A;
 import static com.badlogic.gdx.Input.Keys.D;
@@ -12,6 +13,7 @@ import static com.badlogic.gdx.Input.Keys.S;
 import static com.badlogic.gdx.Input.Keys.UP;
 import static com.badlogic.gdx.Input.Keys.W;
 
+/** Infrastructure adapter translating LibGDX keyboard input to {@link InputSource}. */
 public class LibGdxInputSource implements InputSource {
     @Override
     public boolean isHealthTogglePressed() {

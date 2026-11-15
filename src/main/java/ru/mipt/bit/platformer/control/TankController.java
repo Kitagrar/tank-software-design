@@ -21,7 +21,7 @@ public final class TankController {
     }
 
     public Optional<Command> createCommand() {
-        if (!tank.isAlive() || !level.containsTank(tank) || !tank.isReadyToMove()) {
+        if (!tank.isAlive() || !level.containsTank(tank) || !tank.isStationary()) {
             return Optional.empty();
         }
         return strategy.chooseAction().map(action -> switch (action.kind()) {
