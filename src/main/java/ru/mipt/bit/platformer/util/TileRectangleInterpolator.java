@@ -7,12 +7,12 @@ import com.badlogic.gdx.math.Rectangle;
 
 import static ru.mipt.bit.platformer.util.GdxGameUtils.moveRectangleAtTileCenter;
 
-public class TileMovement {
+public class TileRectangleInterpolator {
 
     private final TiledMapTileLayer tileLayer;
     private final Interpolation interpolation;
 
-    public TileMovement(TiledMapTileLayer tileLayer, Interpolation interpolation) {
+    public TileRectangleInterpolator(TiledMapTileLayer tileLayer, Interpolation interpolation) {
         this.tileLayer = tileLayer;
         this.interpolation = interpolation;
     }

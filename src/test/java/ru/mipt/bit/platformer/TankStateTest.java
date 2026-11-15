@@ -53,7 +53,7 @@ class TankStateTest {
         tank.updateMovement(0.4f);
         assertEquals(0.5f, tank.getMovementProgress(), 1e-6f);
         tank.updateMovement(0.4f);
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
         tank.takeDamage(56);
         assertEquals(14, tank.getHealth());
         assertFalse(tank.canShoot());

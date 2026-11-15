@@ -22,7 +22,7 @@ Names are relative to `ru.mipt.bit.platformer`.
 | Domain/core port | `model.LevelObserver` | Lifecycle output contract |
 | Domain | `model.state.TankState` | State policy contract |
 | Domain | `model.state.LightTankState`, `model.state.MediumTankState`, `model.state.HeavyTankState` | Immutable movement/shooting policies |
-| Domain | `level.LevelValidator`, `level.RandomTankGenerator` | Layout validity and initial spawn selection |
+| Domain | `level.LevelValidator`, `level.RandomTankPositionGenerator` | Layout validity and initial spawn selection |
 | Domain/application | `level.RandomLevelCreationStrategy` | In-process layout generation and aggregate construction; not an external adapter |
 | Application | `level.LevelCreationStrategy` | Initial-level factory/strategy seam |
 | Application | `command.Command`, `command.MoveCommand`, `command.ShootCommand`, `command.ToggleHealthBarsCommand` | Requests and their execution against receivers |
@@ -35,7 +35,7 @@ Names are relative to `ru.mipt.bit.platformer`.
 | Infrastructure | `graphics.GraphicalLevel` | Observer-maintained scene and health-bar display adapter |
 | Infrastructure | `graphics.EntityRenderer` | Internal renderer component contract |
 | Infrastructure | `graphics.TankRenderer`, `graphics.TreeRenderer`, `graphics.BulletRenderer`, `graphics.HealthBarRendererDecorator` | Graphical adapter components; decorator owns its wrapped renderer |
-| Infrastructure | `util.GdxGameUtils`, `util.TileMovement` | Map/drawing helpers and visual interpolation |
+| Infrastructure | `util.GdxGameUtils`, `util.TileRectangleInterpolator` | Map/drawing helpers and visual interpolation |
 | Infrastructure/application, mixed | `level.FileLevelCreationStrategy` | Classpath loading, parsing, validation and level construction |
 | Infrastructure/composition root | `GameDesktopLauncher` | LibGDX driving adapter, object wiring and four-phase cycle |
 

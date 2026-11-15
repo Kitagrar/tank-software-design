@@ -31,6 +31,6 @@ class MoveCommandTest {
         new MoveCommand(tank, Direction.RIGHT, new Tree(new GridPoint2(2, 1))).execute();
         assertEquals(new GridPoint2(1, 1), tank.getCoordinates());
         assertEquals(new GridPoint2(1, 1), tank.getDestinationCoordinates());
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
     }
 }

@@ -18,13 +18,13 @@ class TankStateMovementTest {
         GridPoint2 destination = tank.getDestinationCoordinates();
         tank.updateMovement(duration / 2);
         assertEquals(0.5f, tank.getMovementProgress(), 1e-6f);
-        assertFalse(tank.isReadyToMove());
+        assertFalse(tank.isStationary());
         assertEquals(source, tank.getCoordinates());
         assertTrue(tank.occupies(source));
         assertTrue(tank.occupies(destination));
         assertFalse(tank.tryMove(Direction.UP, cell -> false));
         tank.updateMovement(duration / 2);
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
         assertEquals(destination, tank.getCoordinates());
         assertFalse(tank.occupies(source));
         assertTrue(tank.occupies(destination));
@@ -48,8 +48,8 @@ class TankStateMovementTest {
         Tank heavy = movingTank(14);
         medium.updateMovement(0.4f);
         heavy.updateMovement(0.8f);
-        assertFalse(medium.isReadyToMove());
-        assertFalse(heavy.isReadyToMove());
+        assertFalse(medium.isStationary());
+        assertFalse(heavy.isStationary());
         assertEquals(0.5f, medium.getMovementProgress(), 1e-6f);
         assertEquals(2f / 3, heavy.getMovementProgress(), 1e-6f);
     }
@@ -78,7 +78,7 @@ class TankStateMovementTest {
         assertTrue(tank.occupies(source));
         assertTrue(tank.occupies(destination));
         tank.updateMovement(0.3f);
-        assertTrue(tank.isReadyToMove());
+        assertTrue(tank.isStationary());
         assertEquals(destination, tank.getCoordinates());
         assertFalse(tank.occupies(source));
     }

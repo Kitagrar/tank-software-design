@@ -20,8 +20,8 @@ class MultiTankCollisionTest {
         Tank b = level.getTanks().get(1);
         assertFalse(a.tryMove(Direction.RIGHT, level.getCollisionObstacle()));
         assertFalse(b.tryMove(Direction.LEFT, level.getCollisionObstacle()));
-        assertTrue(a.isReadyToMove());
-        assertTrue(b.isReadyToMove());
+        assertTrue(a.isStationary());
+        assertTrue(b.isStationary());
     }
 
     @Test
@@ -48,14 +48,14 @@ class MultiTankCollisionTest {
                 .createCommand().orElseThrow();
         Command second = new TankController(b, () -> Optional.of(TankAction.move(Direction.LEFT)), level)
                 .createCommand().orElseThrow();
-        assertTrue(a.isReadyToMove());
-        assertTrue(b.isReadyToMove());
+        assertTrue(a.isStationary());
+        assertTrue(b.isStationary());
         first.execute();
         second.execute();
         assertEquals(new GridPoint2(1, 1), a.getDestinationCoordinates());
         assertEquals(new GridPoint2(2, 1), b.getDestinationCoordinates());
-        assertFalse(a.isReadyToMove());
-        assertTrue(b.isReadyToMove());
+        assertFalse(a.isStationary());
+        assertTrue(b.isStationary());
     }
 
     @Test

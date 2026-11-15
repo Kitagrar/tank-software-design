@@ -35,7 +35,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public boolean tryMove(Direction direction, Obstacle obstacle) {
-        if (!isAlive() || !isReadyToMove()) {
+        if (!isAlive() || !isStationary()) {
             return false;
         }
 
@@ -51,7 +51,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public void updateMovement(float deltaTime) {
-        if (isReadyToMove()) {
+        if (isStationary()) {
             return;
         }
 
@@ -63,7 +63,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
         }
     }
 
-    public boolean isReadyToMove() {
+    public boolean isStationary() {
         return isEqual(movementProgress, 1f);
     }
 
@@ -112,7 +112,7 @@ public class Tank implements Movable, Obstacle, LevelEntity {
     }
 
     public boolean canShoot() {
-        return isAlive() && isReadyToMove() && state.canShoot();
+        return isAlive() && isStationary() && state.canShoot();
     }
 
     public void takeDamage(int damage) {

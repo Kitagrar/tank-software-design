@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-public final class RandomTankGenerator {
+public final class RandomTankPositionGenerator {
     private final Random random;
 
-    public RandomTankGenerator(Random random) {
+    public RandomTankPositionGenerator(Random random) {
         this.random = Objects.requireNonNull(random);
     }
 

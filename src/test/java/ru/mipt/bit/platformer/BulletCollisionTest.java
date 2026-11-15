@@ -170,7 +170,7 @@ class BulletCollisionTest {
         Bullet bullet = new Bullet(new GridPoint2(targetX, 1), Direction.UP, 9, 0.1f);
         level.addBullet(bullet);
         level.tick(0.1f);
-        assertFalse(target.isReadyToMove());
+        assertFalse(target.isStationary());
         assertEquals(Tank.DEFAULT_HEALTH - 9, target.getHealth());
         assertTrue(level.getBullets().isEmpty());
         assertEquals(new GridPoint2(targetX, 2), bullet.getCoordinates());
