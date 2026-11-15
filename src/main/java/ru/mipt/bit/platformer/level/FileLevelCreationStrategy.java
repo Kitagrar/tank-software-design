@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/** Mixed infrastructure/application boundary: classpath loading, parsing and level construction. */
 public class FileLevelCreationStrategy implements LevelCreationStrategy {
     private final String resourceName;
     private final LevelValidator validator;
