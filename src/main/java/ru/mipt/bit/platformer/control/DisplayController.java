@@ -2,8 +2,8 @@ package ru.mipt.bit.platformer.control;
 
 import ru.mipt.bit.platformer.command.Command;
 import ru.mipt.bit.platformer.command.ToggleHealthBarsCommand;
-import ru.mipt.bit.platformer.graphics.HealthBarDisplay;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.HealthBarDisplay;
+import ru.mipt.bit.platformer.port.InputSource;
 
 import java.util.Objects;
 import java.util.Optional;

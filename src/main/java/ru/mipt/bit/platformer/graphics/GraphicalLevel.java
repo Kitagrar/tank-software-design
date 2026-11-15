@@ -4,11 +4,15 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.utils.Disposable;
 import ru.mipt.bit.platformer.model.*;
+import ru.mipt.bit.platformer.port.HealthBarDisplay;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** Its visible membership is maintained exclusively by level lifecycle events. */
+/**
+ * Infrastructure graphical adapter for lifecycle and health-bar display ports.
+ * Its visible membership is maintained exclusively by level lifecycle events.
+ */
 public final class GraphicalLevel implements LevelObserver, HealthBarDisplay, Disposable {
     private final Set<Tank> tanks = new LinkedHashSet<>();
     private final Set<Tree> trees = new LinkedHashSet<>();

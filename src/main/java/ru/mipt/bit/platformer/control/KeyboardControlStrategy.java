@@ -1,6 +1,6 @@
 package ru.mipt.bit.platformer.control;
 
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.model.Direction;
 
 import java.util.Objects;

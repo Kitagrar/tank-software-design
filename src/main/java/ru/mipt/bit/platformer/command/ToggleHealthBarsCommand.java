@@ -1,6 +1,6 @@
 package ru.mipt.bit.platformer.command;
 
-import ru.mipt.bit.platformer.graphics.HealthBarDisplay;
+import ru.mipt.bit.platformer.port.HealthBarDisplay;
 
 import java.util.Objects;
 

@@ -2,7 +2,7 @@ package ru.mipt.bit.platformer;
 
 import org.junit.jupiter.api.Test;
 import ru.mipt.bit.platformer.command.ToggleHealthBarsCommand;
-import ru.mipt.bit.platformer.graphics.HealthBarDisplay;
+import ru.mipt.bit.platformer.port.HealthBarDisplay;
 
 import static org.junit.jupiter.api.Assertions.*;
 

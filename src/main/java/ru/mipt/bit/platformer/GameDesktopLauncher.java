@@ -17,7 +17,7 @@ import ru.mipt.bit.platformer.control.DisplayController;
 import ru.mipt.bit.platformer.control.RandomAiControlStrategy;
 import ru.mipt.bit.platformer.control.TankController;
 import ru.mipt.bit.platformer.input.LibGdxInputSource;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.level.FileLevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelCreationStrategy;
 import ru.mipt.bit.platformer.level.LevelValidator;
@@ -33,6 +33,7 @@ import java.util.Random;
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
+/** Infrastructure driving adapter for LibGDX lifecycle and application composition root. */
 public class GameDesktopLauncher implements ApplicationListener {
 
     private final LevelCreationStrategy levelStrategy;

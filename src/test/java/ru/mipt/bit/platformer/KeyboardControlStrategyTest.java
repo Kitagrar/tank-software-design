@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import ru.mipt.bit.platformer.control.KeyboardControlStrategy;
 import ru.mipt.bit.platformer.control.TankAction;
-import ru.mipt.bit.platformer.input.InputSource;
+import ru.mipt.bit.platformer.port.InputSource;
 import ru.mipt.bit.platformer.model.Direction;
 
 import java.util.Optional;

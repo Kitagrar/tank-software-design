@@ -3,6 +3,7 @@ package ru.mipt.bit.platformer.input;
 import ru.mipt.bit.platformer.model.Direction;
 import ru.mipt.bit.platformer.model.Movable;
 import ru.mipt.bit.platformer.model.Obstacle;
+import ru.mipt.bit.platformer.port.InputSource;
 
 public class InputHandler {
     private final InputSource inputSource;
